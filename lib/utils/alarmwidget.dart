@@ -58,12 +58,12 @@ class AlarmWidget extends StatelessWidget {
                   ),
 
                   ElevatedButton(
-                    child: Icon(Icons.edit),
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey[700],
                       foregroundColor: Colors.white,
                     ),
+                    child: Icon(Icons.edit),
                   ),
                 ],
               ),

@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
 
 import 'pages/homepage.dart';
+import 'utils/hiveutils/alarmmodel.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(AlarmAdapter());
+  await Hive.openBox<Alarm>('alarms');
+
   runApp(const MyApp());
 }
 
@@ -13,7 +20,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false, //@IntercityCheese
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
