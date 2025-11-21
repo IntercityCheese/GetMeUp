@@ -63,24 +63,43 @@ class _HomePageState extends State<HomePage> {
               itemBuilder: (context, index) {
                 final alarm = box.getAt(index)!;
 
-                return AlarmWidget(
-                  alarmName: alarm.alarmName,
-                  alarmTime: alarm.time,
-                  modes: [],
-                  isDelayed: false,
-                  enabled: alarm.isEnabled,
-                  repeatDays: alarm.repeatDays,
-                  onToggle: (value) {
-                    final updated = Alarm(
-                      alarmName: alarm.alarmName,
-                      time: alarm.time,
-                      isEnabled: value,
-                      repeatDays: alarm.repeatDays,
-                    );
-
-                    box.putAt(index, updated);
+                return Dismissible(
+                  key: ValueKey(box.keyAt(index)),
+                  direction: DismissDirection.endToStart,
+                  background: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      alignment: Alignment.centerRight,
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Icon(Icons.delete, color: Colors.white),
+                    ),
+                  ),
+                  onDismissed: (direction) {
+                    _deleteAlarm(index);
                   },
-                  onDelete: () => _deleteAlarm(index),
+
+                  child: AlarmWidget(
+                    alarmName: alarm.alarmName,
+                    alarmTime: alarm.time,
+                    modes: [],
+                    isDelayed: false,
+                    enabled: alarm.isEnabled,
+                    repeatDays: alarm.repeatDays,
+                    onToggle: (value) {
+                      final updated = Alarm(
+                        alarmName: alarm.alarmName,
+                        time: alarm.time,
+                        isEnabled: value,
+                        repeatDays: alarm.repeatDays,
+                      );
+
+                      box.putAt(index, updated);
+                    },
+                  ),
                 );
               },
             );

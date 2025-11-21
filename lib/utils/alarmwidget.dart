@@ -8,7 +8,6 @@ class AlarmWidget extends StatelessWidget {
   final bool enabled;
   final List<int> repeatDays;
   final Function(bool)? onToggle;
-  final Function() onDelete;
 
   const AlarmWidget({
     super.key,
@@ -19,7 +18,6 @@ class AlarmWidget extends StatelessWidget {
     required this.enabled,
     required this.repeatDays,
     required this.onToggle,
-    required this.onDelete,
   });
 
   @override
@@ -71,15 +69,6 @@ class AlarmWidget extends StatelessWidget {
                       foregroundColor: Colors.white,
                     ),
                     child: Icon(Icons.edit),
-                  ),
-                  ElevatedButton(
-                    // Delete
-                    onPressed: onDelete,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 255, 108, 108),
-                      foregroundColor: Colors.white,
-                    ),
-                    child: Icon(Icons.delete),
                   ),
                 ],
               ),
