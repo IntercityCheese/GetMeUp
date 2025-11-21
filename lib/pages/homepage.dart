@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:getmeup/utils/alarmwidget.dart';
+import 'package:getmeup/utils/hiveutils/alarm_service.dart';
+import 'package:hive_flutter/adapters.dart';
+
+import '../utils/hiveutils/alarmmodel.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -9,6 +13,27 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final alarmService = AlarmService();
+
+  // Create new alarm
+  void _createNewAlarm() {
+    final box = Hive.box<Alarm>('alarms');
+
+    final newAlarm = Alarm(
+      time: "00:00",
+      isEnabled: true,
+      repeatDays: [],
+      alarmName: "New Alarm",
+    );
+
+    box.add(newAlarm);
+  }
+
+  void _deleteAlarm(int index) {
+    final box = Hive.box<Alarm>('alarms');
+    box.deleteAt(index);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,42 +48,43 @@ class _HomePageState extends State<HomePage> {
         icon: Icon(Icons.alarm),
         backgroundColor: Colors.deepOrange,
         foregroundColor: Colors.white,
-        onPressed: () {},
+        onPressed: () {
+          _createNewAlarm();
+        },
       ),
 
       body: Padding(
         padding: const EdgeInsets.all(15.0),
-        child: ListView(
-          children: [
-            AlarmWidget(
-              alarmName: "Mon-Fri Work Commute",
-              alarmTime: "09:40",
-              modes: ["TfL - Central", "SouthWest - Waterloo2Bournemouth"],
-              isDelayed: false,
-              enabled: true,
-            ),
-            AlarmWidget(
-              alarmName: "Alarm 2",
-              alarmTime: "10:40",
-              modes: ["TfL - Central", "SouthWest - Waterloo2Bournemouth"],
-              isDelayed: false,
-              enabled: false,
-            ),
-            AlarmWidget(
-              alarmName: "Train Home",
-              alarmTime: "18:36",
-              modes: ["TfL - Central", "SouthWest - Waterloo2Bournemouth"],
-              isDelayed: false,
-              enabled: false,
-            ),
-            AlarmWidget(
-              alarmName: "Alarm 3",
-              alarmTime: "18:36",
-              modes: ["TfL - Central", "SouthWest - Waterloo2Bournemouth"],
-              isDelayed: false,
-              enabled: true,
-            ),
-          ],
+        child: ValueListenableBuilder(
+          valueListenable: Hive.box<Alarm>('alarms').listenable(),
+          builder: (context, Box<Alarm> box, _) {
+            return ListView.builder(
+              itemCount: box.length,
+              itemBuilder: (context, index) {
+                final alarm = box.getAt(index)!;
+
+                return AlarmWidget(
+                  alarmName: alarm.alarmName,
+                  alarmTime: alarm.time,
+                  modes: [],
+                  isDelayed: false,
+                  enabled: alarm.isEnabled,
+                  repeatDays: alarm.repeatDays,
+                  onToggle: (value) {
+                    final updated = Alarm(
+                      alarmName: alarm.alarmName,
+                      time: alarm.time,
+                      isEnabled: value,
+                      repeatDays: alarm.repeatDays,
+                    );
+
+                    box.putAt(index, updated);
+                  },
+                  onDelete: () => _deleteAlarm(index),
+                );
+              },
+            );
+          },
         ),
       ),
     );

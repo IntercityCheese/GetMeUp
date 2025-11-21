@@ -6,6 +6,9 @@ class AlarmWidget extends StatelessWidget {
   final bool isDelayed;
   final List modes;
   final bool enabled;
+  final List<int> repeatDays;
+  final Function(bool)? onToggle;
+  final Function() onDelete;
 
   const AlarmWidget({
     super.key,
@@ -14,6 +17,9 @@ class AlarmWidget extends StatelessWidget {
     required this.modes,
     required this.isDelayed,
     required this.enabled,
+    required this.repeatDays,
+    required this.onToggle,
+    required this.onDelete,
   });
 
   @override
@@ -53,17 +59,27 @@ class AlarmWidget extends StatelessWidget {
                 children: [
                   Switch(
                     value: enabled,
-                    onChanged: (context) {},
+                    onChanged: (value) => onToggle?.call(value),
                     activeThumbColor: Colors.green,
                   ),
 
                   ElevatedButton(
+                    // Edit
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey[700],
                       foregroundColor: Colors.white,
                     ),
                     child: Icon(Icons.edit),
+                  ),
+                  ElevatedButton(
+                    // Delete
+                    onPressed: onDelete,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 255, 108, 108),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Icon(Icons.delete),
                   ),
                 ],
               ),
