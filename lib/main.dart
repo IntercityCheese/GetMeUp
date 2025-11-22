@@ -4,6 +4,8 @@ import 'package:hive_flutter/adapters.dart';
 import 'pages/homepage.dart';
 import 'utils/hiveutils/alarmmodel.dart';
 
+// this is an @IntercityCheese project
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();

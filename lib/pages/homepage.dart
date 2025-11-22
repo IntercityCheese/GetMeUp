@@ -14,6 +14,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final alarmService = AlarmService();
+  late TextEditingController controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller = TextEditingController();
+  }
 
   // Create new alarm
   void _createNewAlarm() {
@@ -32,6 +40,67 @@ class _HomePageState extends State<HomePage> {
   void _deleteAlarm(int index) {
     final box = Hive.box<Alarm>('alarms');
     box.deleteAt(index);
+  }
+
+  Future<void> _changeAlarmName(int index) async {
+    final box = Hive.box<Alarm>('alarms');
+    final alarm = box.getAt(index);
+
+    final newName = await changeNameDialog();
+
+    if (newName == null) return;
+
+    final newAlarm = Alarm(
+      time: alarm!.time,
+      isEnabled: alarm.isEnabled,
+      repeatDays: alarm.repeatDays,
+      alarmName: newName,
+    );
+    alarmService.updateAlarm(index, newAlarm);
+  }
+
+  Future<void> _changeAlarmTime(int index) async {
+    final box = Hive.box<Alarm>('alarms');
+    final alarm = box.getAt(index);
+
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (picked == null) return;
+
+    final newAlarm = Alarm(
+      time: picked.format(context),
+      isEnabled: alarm!.isEnabled,
+      repeatDays: alarm.repeatDays,
+      alarmName: alarm.alarmName,
+    );
+    alarmService.updateAlarm(index, newAlarm);
+  }
+
+  Future<String?> changeNameDialog() => showDialog<String>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text("Alarm Name"),
+      content: TextField(
+        autofocus: true,
+        decoration: InputDecoration(hintText: "Enter alarm name"),
+        controller: controller,
+      ),
+      actions: [
+        TextButton(onPressed: close, child: Text("Cancel")),
+        TextButton(onPressed: submit, child: Text("OK")),
+      ],
+    ),
+  );
+
+  void submit() {
+    Navigator.of(context).pop(controller.text);
+  }
+
+  void close() {
+    Navigator.of(context).pop();
   }
 
   @override
@@ -99,6 +168,8 @@ class _HomePageState extends State<HomePage> {
 
                       box.putAt(index, updated);
                     },
+                    setTime: () => _changeAlarmTime(index),
+                    setName: () => _changeAlarmName(index),
                   ),
                 );
               },

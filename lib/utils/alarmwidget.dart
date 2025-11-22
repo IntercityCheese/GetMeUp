@@ -8,6 +8,8 @@ class AlarmWidget extends StatelessWidget {
   final bool enabled;
   final List<int> repeatDays;
   final Function(bool)? onToggle;
+  final VoidCallback? setTime;
+  final VoidCallback? setName;
 
   const AlarmWidget({
     super.key,
@@ -18,6 +20,8 @@ class AlarmWidget extends StatelessWidget {
     required this.enabled,
     required this.repeatDays,
     required this.onToggle,
+    required this.setTime,
+    required this.setName,
   });
 
   @override
@@ -37,20 +41,27 @@ class AlarmWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                alarmName,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Colors.white,
+              GestureDetector(
+                onTap: setName,
+                child: Text(
+                  // AlarmName
+                  alarmName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-              Text(
-                alarmTime,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 45,
-                  color: Colors.white,
+              GestureDetector(
+                onTap: setTime,
+                child: Text(
+                  alarmTime,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 45,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               Row(
