@@ -101,10 +101,12 @@ class _HomePageState extends State<HomePage> {
 
   void submit() {
     Navigator.of(context).pop(controller.text);
+    controller.clear();
   }
 
   void close() {
     Navigator.of(context).pop();
+    controller.clear();
   }
 
   @override
@@ -112,7 +114,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Text("GetMeUp!"),
+        title: Text("GetMeUp!", style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.deepOrange,
         foregroundColor: Colors.white,
       ),
