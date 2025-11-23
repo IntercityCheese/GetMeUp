@@ -44,7 +44,7 @@ class AlarmWidget extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  LiveGraphic(),
+                  LiveGraphic(isLive: enabled),
                   Text(
                     "  ",
                   ), // Couldn't be faffed with adding a spacer or expanding so this will do.
