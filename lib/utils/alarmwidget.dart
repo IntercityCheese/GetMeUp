@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:getmeup/utils/livegraphic.dart';
 
 class AlarmWidget extends StatelessWidget {
   final String alarmName;
@@ -41,17 +42,26 @@ class AlarmWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              GestureDetector(
-                onTap: setName,
-                child: Text(
-                  // AlarmName
-                  alarmName,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    color: Colors.white,
+              Row(
+                children: [
+                  LiveGraphic(),
+                  Text(
+                    "  ",
+                  ), // Couldn't be faffed with adding a spacer or expanding so this will do.
+
+                  GestureDetector(
+                    onTap: setName,
+                    child: Text(
+                      // AlarmName
+                      alarmName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
               GestureDetector(
                 onTap: setTime,

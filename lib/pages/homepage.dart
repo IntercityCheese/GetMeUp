@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:getmeup/utils/alarmwidget.dart';
 import 'package:getmeup/utils/hiveutils/alarm_service.dart';
 import 'package:hive_flutter/adapters.dart';
-
+import 'package:fluttertoast/fluttertoast.dart';
 import '../utils/hiveutils/alarmmodel.dart';
 
 class HomePage extends StatefulWidget {
@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
 
     final newAlarm = Alarm(
       time: "00:00",
-      isEnabled: true,
+      isEnabled: false,
       repeatDays: [],
       alarmName: "New Alarm",
     );
@@ -49,6 +49,10 @@ class _HomePageState extends State<HomePage> {
     final newName = await changeNameDialog();
 
     if (newName == null) return;
+    if (newName.length > 15) {
+      Fluttertoast.showToast(msg: "Name cannot be longer than 15 characters.");
+      return;
+    }
 
     final newAlarm = Alarm(
       time: alarm!.time,
