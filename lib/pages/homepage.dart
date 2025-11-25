@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:getmeup/utils/alarmwidget.dart';
+import 'package:getmeup/utils/editalarmpoput.dart';
 import 'package:getmeup/utils/hiveutils/alarm_service.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -109,6 +110,17 @@ class _HomePageState extends State<HomePage> {
     controller.clear();
   }
 
+  void _editAlarmInfo(int index) {
+    final box = Hive.box<Alarm>('alarms');
+    final alarm = box.getAt(index);
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return EditAlarmPopout(alarm: alarm);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -176,6 +188,7 @@ class _HomePageState extends State<HomePage> {
                     },
                     setTime: () => _changeAlarmTime(index),
                     setName: () => _changeAlarmName(index),
+                    editAlarm: () => _editAlarmInfo(index),
                   ),
                 );
               },

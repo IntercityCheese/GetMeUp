@@ -11,6 +11,7 @@ class AlarmWidget extends StatelessWidget {
   final Function(bool)? onToggle;
   final VoidCallback? setTime;
   final VoidCallback? setName;
+  final VoidCallback? editAlarm;
 
   const AlarmWidget({
     super.key,
@@ -23,6 +24,7 @@ class AlarmWidget extends StatelessWidget {
     required this.onToggle,
     required this.setTime,
     required this.setName,
+    required this.editAlarm,
   });
 
   @override
@@ -84,7 +86,7 @@ class AlarmWidget extends StatelessWidget {
 
                   ElevatedButton(
                     // Edit
-                    onPressed: () {},
+                    onPressed: editAlarm,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey[700],
                       foregroundColor: Colors.white,
