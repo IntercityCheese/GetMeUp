@@ -38,6 +38,7 @@ dependencies:
   hive_flutter: ^1.1.0
   path_provider: ^2.1.5
   fluttertoast: ^9.0.0
+  http: ^1.6.0
 
 dev_dependencies:
   analyzer: ^6.4.1
