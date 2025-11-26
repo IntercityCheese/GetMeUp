@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:getmeup/utils/hiveutils/alarm_service.dart';
 import 'package:getmeup/utils/hiveutils/alarmmodel.dart';
 import 'package:getmeup/utils/navigation_tile_widget.dart';
 
 class EditAlarmPopout extends StatefulWidget {
   final Alarm? alarm;
+  final int index;
 
-  const EditAlarmPopout({super.key, required this.alarm});
+  const EditAlarmPopout({super.key, required this.alarm, required this.index});
 
   @override
   State<EditAlarmPopout> createState() => _EditAlarmPopoutState();
@@ -23,10 +25,16 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
   }
 
   Future<void> _selectTime() async {
+    final _alarmService = AlarmService();
+
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
+
+    if (widget.alarm!.modeMap.isNotEmpty) {
+      _alarmService.calculateNewTime(widget.index);
+    }
 
     if (picked != null) {
       setState(() {

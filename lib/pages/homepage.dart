@@ -123,7 +123,7 @@ class _HomePageState extends State<HomePage> {
     await showModalBottomSheet(
       context: context,
       builder: (context) {
-        return EditAlarmPopout(alarm: alarm);
+        return EditAlarmPopout(alarm: alarm, index: index);
       },
       elevation: 6,
     );
