@@ -2,10 +2,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class driveAPIService {
-  Future<double?> getTravelTime(String start, String end) async {
-    final accessToken =
-        "pk.eyJ1IjoiYmlnYWxmMTIzNCIsImEiOiJjbWlldGtieXAwNmRnM2RyMTM2MTYxY3kyIn0.WXE5ObH-g8765iNvqpFL9g";
+  final String accessToken =
+      "pk.eyJ1IjoiYmlnYWxmMTIzNCIsImEiOiJjbWlldGtieXAwNmRnM2RyMTM2MTYxY3kyIn0.WXE5ObH-g8765iNvqpFL9g";
 
+  Future<double?> getTravelTime(String start, String end) async {
     final url =
         'https://api.mapbox.com/directions/v5/mapbox/driving-traffic/'
         '$start;$end?geometries=geojson&overview=full&access_token=$accessToken';
