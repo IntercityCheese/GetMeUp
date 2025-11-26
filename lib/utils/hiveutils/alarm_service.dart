@@ -43,7 +43,10 @@ class AlarmService {
     final routing = driveAPIService();
 
     for (int journey = 0; journey < alarm!.modeMap.length; journey++) {
-      if (alarm.modeMap[journey][2] == "Car") {
+      if (alarm.modeMap[journey.toString()][2] == "PreTime") {
+        journeyTime += alarm.modeMap[journey.toString()][0];
+      }
+      if (alarm.modeMap[journey.toString()][2] == "Car") {
         // Geocode start location
         List<double>? startCoords = await geocoder.forwardGeocode(
           alarm.modeMap[journey.toString()][0],
