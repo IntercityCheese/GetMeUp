@@ -33,6 +33,8 @@ class _HomePageState extends State<HomePage> {
       isEnabled: false,
       repeatDays: [],
       alarmName: "New Alarm",
+      modeMap: {},
+      arrivalTime: "00:00",
     );
 
     box.add(newAlarm);
@@ -60,6 +62,8 @@ class _HomePageState extends State<HomePage> {
       isEnabled: alarm.isEnabled,
       repeatDays: alarm.repeatDays,
       alarmName: newName,
+      modeMap: alarm.modeMap,
+      arrivalTime: alarm.arrivalTime,
     );
     alarmService.updateAlarm(index, newAlarm);
   }
@@ -71,6 +75,7 @@ class _HomePageState extends State<HomePage> {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      helpText: "Select arrival time",
     );
 
     if (picked == null) return;
@@ -80,6 +85,8 @@ class _HomePageState extends State<HomePage> {
       isEnabled: alarm!.isEnabled,
       repeatDays: alarm.repeatDays,
       alarmName: alarm.alarmName,
+      modeMap: alarm.modeMap,
+      arrivalTime: alarm.arrivalTime,
     );
     alarmService.updateAlarm(index, newAlarm);
   }
@@ -110,14 +117,15 @@ class _HomePageState extends State<HomePage> {
     controller.clear();
   }
 
-  void _editAlarmInfo(int index) {
+  void _editAlarmInfo(int index) async {
     final box = Hive.box<Alarm>('alarms');
     final alarm = box.getAt(index);
-    showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       builder: (context) {
         return EditAlarmPopout(alarm: alarm);
       },
+      elevation: 6,
     );
   }
 
@@ -182,6 +190,8 @@ class _HomePageState extends State<HomePage> {
                         time: alarm.time,
                         isEnabled: value,
                         repeatDays: alarm.repeatDays,
+                        modeMap: alarm.modeMap,
+                        arrivalTime: alarm.arrivalTime,
                       );
 
                       box.putAt(index, updated);

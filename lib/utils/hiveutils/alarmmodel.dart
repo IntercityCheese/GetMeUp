@@ -15,10 +15,18 @@ class Alarm {
   @HiveField(3)
   List<int> repeatDays;
 
+  @HiveField(4)
+  String arrivalTime;
+
+  @HiveField(5)
+  Map modeMap;
+
   Alarm({
     required this.time,
     required this.isEnabled,
     required this.repeatDays,
     required this.alarmName,
+    required this.modeMap,
+    required this.arrivalTime,
   });
 }
