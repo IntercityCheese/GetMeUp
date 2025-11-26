@@ -8,3 +8,5 @@ GetMeUp is an alarm clock app written mostly in flutter designed with commuters 
   - Shake phone for length of time
   - Scan QR code/Barcode (ideal)
 - More features coming soon
+
+The first functioning version is almost ready -> Stay tuned!
