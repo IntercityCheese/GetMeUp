@@ -4,11 +4,15 @@ class NavigationTileWidget extends StatelessWidget {
   final String startLocation;
   final String endLocation;
   final String mode;
+  final VoidCallback clickStart;
+  final VoidCallback clickEnd;
   const NavigationTileWidget({
     super.key,
     required this.startLocation,
     required this.endLocation,
     required this.mode,
+    required this.clickStart,
+    required this.clickEnd,
   });
 
   @override
@@ -38,12 +42,19 @@ class NavigationTileWidget extends StatelessWidget {
                     color: Colors.white,
                     size: 30,
                   ),
-                  Text(
-                    startLocation,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: clickStart,
+                      child: Text(
+                        startLocation,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        //softWrap: true,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                 ],
@@ -62,12 +73,19 @@ class NavigationTileWidget extends StatelessWidget {
                     color: Colors.white,
                     size: 30,
                   ),
-                  Text(
-                    endLocation,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: clickEnd,
+                      child: Text(
+                        endLocation,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        //softWrap: true,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                 ],

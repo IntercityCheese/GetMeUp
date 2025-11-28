@@ -13,7 +13,7 @@ void main() async {
 
   // DEV: wipe only the alarms box on startup so old incompatible data is removed
   // Use this only for development/migration, remove afterwards.
-  await Hive.deleteBoxFromDisk('alarms');
+  //await Hive.deleteBoxFromDisk('alarms');
 
   await Hive.openBox<Alarm>('alarms');
   runApp(const MyApp());

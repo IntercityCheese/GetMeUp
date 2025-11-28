@@ -6,7 +6,7 @@ import 'package:hive_flutter/adapters.dart';
 
 class EditAlarmPopout extends StatefulWidget {
   final Alarm alarm;
-  final int index; // index inside Hive box
+  final int index;
 
   const EditAlarmPopout({super.key, required this.alarm, required this.index});
 
@@ -16,27 +16,25 @@ class EditAlarmPopout extends StatefulWidget {
 
 class _EditAlarmPopoutState extends State<EditAlarmPopout> {
   final TextEditingController _timeController = TextEditingController();
+  final TextEditingController controller = TextEditingController();
 
   Box<Alarm> get alarmBox => Hive.box<Alarm>("alarms");
 
   @override
   void initState() {
     super.initState();
-    _timeController.text = widget.alarm.time;
+    _timeController.text = widget.alarm.arrivalTime;
   }
 
-  /// -------------------------------------------------------------------------
-  /// Add journey
-  /// -------------------------------------------------------------------------
   Future<void> _createNewJourney() async {
-    final alarm = alarmBox.getAt(widget.index)!;
+    final alarm = alarmBox.getAt(widget.index);
+    if (alarm == null) return;
 
-    // Clone map to avoid modifying Hive object reference directly
-    final newMap = Map<String, dynamic>.from(alarm.modeMap);
+    final updatedMap = Map<String, dynamic>.from(alarm.modeMap);
+    final newKey = updatedMap.length.toString();
 
-    newMap[newMap.length.toString()] = ["BH3 7LZ, UK", "BH8 9PY, UK", "Car"];
+    updatedMap[newKey] = ["BH3 7LZ, UK", "BH8 9DG, UK", "Car"];
 
-    // Save updated alarm
     alarmBox.putAt(
       widget.index,
       Alarm(
@@ -44,28 +42,25 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
         isEnabled: alarm.isEnabled,
         repeatDays: alarm.repeatDays,
         alarmName: alarm.alarmName,
-        modeMap: newMap,
+        modeMap: updatedMap,
         arrivalTime: alarm.arrivalTime,
       ),
     );
   }
 
-  /// -------------------------------------------------------------------------
-  /// Delete a journey
-  /// -------------------------------------------------------------------------
   Future<void> _deleteJourney(String key) async {
-    final alarm = alarmBox.getAt(widget.index)!;
+    final alarm = alarmBox.getAt(widget.index);
+    if (alarm == null) return;
 
-    final newMap = Map<String, dynamic>.from(alarm.modeMap);
-    newMap.remove(key);
+    final updatedMap = Map<String, dynamic>.from(alarm.modeMap);
+    updatedMap.remove(key);
 
-    // Reindex keys so they are 0,1,2,3…
     final reindexed = <String, dynamic>{};
     int i = 0;
-    newMap.forEach((_, value) {
-      reindexed[i.toString()] = value;
+    for (var entry in updatedMap.values) {
+      reindexed[i.toString()] = entry;
       i++;
-    });
+    }
 
     alarmBox.putAt(
       widget.index,
@@ -80,11 +75,10 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
     );
   }
 
-  /// -------------------------------------------------------------------------
-  /// Time Picker
-  /// -------------------------------------------------------------------------
   Future<void> _selectTime() async {
-    final alarm = alarmBox.getAt(widget.index)!;
+    final alarm = alarmBox.getAt(widget.index);
+    if (alarm == null) return;
+
     final service = AlarmService();
 
     final picked = await showTimePicker(
@@ -94,35 +88,92 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
 
     if (picked == null) return;
 
-    // Update ARRIVAL time only
     final newArrivalTime = picked.format(context);
 
-    // Save arrival time FIRST
     alarmBox.putAt(
       widget.index,
       Alarm(
-        time: alarm.time, // keep wake-up time
+        time: alarm.time,
         isEnabled: alarm.isEnabled,
         repeatDays: alarm.repeatDays,
         alarmName: alarm.alarmName,
         modeMap: alarm.modeMap,
-        arrivalTime: newArrivalTime, // update user-selected arrival time
+        arrivalTime: newArrivalTime,
       ),
     );
 
-    // THEN recalculate wake-up time
     if (alarm.modeMap.isNotEmpty) {
       await service.calculateNewTime(widget.index);
     }
 
-    // Update UI with NEW wake-up time from Hive
-    final updated = alarmBox.getAt(widget.index)!;
-    _timeController.text = updated.arrivalTime;
+    final updated = alarmBox.getAt(widget.index);
+    if (updated != null) {
+      _timeController.text = updated.arrivalTime;
+    }
   }
 
-  /// -------------------------------------------------------------------------
-  /// UI
-  /// -------------------------------------------------------------------------
+  Future<void> _changeDestinationMode(
+    int journeyIndex,
+    int location,
+    String title,
+  ) async {
+    final alarm = alarmBox.getAt(widget.index);
+    if (alarm == null) return;
+
+    final newName = await changeLocationDialog(title);
+    if (newName == null) return;
+
+    final updatedMap = Map<String, dynamic>.from(alarm.modeMap);
+
+    final key = journeyIndex.toString();
+    final journey = List.from(updatedMap[key]);
+    journey[location] = newName;
+
+    updatedMap[key] = journey;
+
+    alarmBox.putAt(
+      widget.index,
+      Alarm(
+        time: alarm.time,
+        isEnabled: alarm.isEnabled,
+        repeatDays: alarm.repeatDays,
+        alarmName: alarm.alarmName,
+        modeMap: updatedMap,
+        arrivalTime: alarm.arrivalTime,
+      ),
+    );
+
+    await _selectTime();
+  }
+
+  Future<String?> changeLocationDialog(String title) {
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          autofocus: true,
+          decoration: InputDecoration(hintText: "Enter $title"),
+          controller: controller,
+        ),
+        actions: [
+          TextButton(onPressed: close, child: const Text("Cancel")),
+          TextButton(onPressed: submit, child: const Text("OK")),
+        ],
+      ),
+    );
+  }
+
+  void submit() {
+    Navigator.of(context).pop(controller.text);
+    controller.clear();
+  }
+
+  void close() {
+    Navigator.of(context).pop();
+    controller.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -138,15 +189,17 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
       child: Padding(
         padding: const EdgeInsets.all(15.0),
         child: ValueListenableBuilder(
-          valueListenable: alarmBox.listenable(keys: [widget.index]),
+          valueListenable: alarmBox.listenable(),
           builder: (context, _, __) {
-            final alarm = alarmBox.getAt(widget.index)!;
+            final alarm = alarmBox.getAt(widget.index);
+            if (alarm == null) return const SizedBox();
+
             final journeys = alarm.modeMap;
+            final keys = journeys.keys.toList();
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // HEADER ----------------------------------------------------
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[900],
@@ -183,7 +236,6 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
 
                 const SizedBox(height: 15),
 
-                // BODY ------------------------------------------------------
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.grey[900],
@@ -204,17 +256,18 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
                         ),
                       ),
 
-                      // JOURNEY LIST --------------------------------------
                       SizedBox(
                         height: 210,
                         child: ListView.builder(
                           itemCount: journeys.length,
                           itemBuilder: (context, index) {
-                            final key = index.toString();
-                            final journey = journeys[key];
+                            final key = keys[index];
+                            final journey = journeys[key] as List;
 
                             return Dismissible(
-                              key: ValueKey("journey_$key"),
+                              key: ValueKey(
+                                "journey_${key}_${journey.hashCode}",
+                              ),
                               direction: DismissDirection.endToStart,
                               background: Container(
                                 decoration: BoxDecoration(
@@ -235,13 +288,22 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
                                 startLocation: journey[0],
                                 endLocation: journey[1],
                                 mode: journey[2],
+                                clickStart: () => _changeDestinationMode(
+                                  index,
+                                  0,
+                                  "Start Location",
+                                ),
+                                clickEnd: () => _changeDestinationMode(
+                                  index,
+                                  1,
+                                  "End Location",
+                                ),
                               ),
                             );
                           },
                         ),
                       ),
 
-                      // TIME PICKER ---------------------------------------
                       TextField(
                         controller: _timeController,
                         readOnly: true,
