@@ -7,6 +7,7 @@ class AlarmWidget extends StatelessWidget {
   final bool isDelayed;
   final List modes;
   final bool enabled;
+  final bool isLive; // <--- NEW (comes from HomePage)
   final List<int> repeatDays;
   final Function(bool)? onToggle;
   final VoidCallback? setTime;
@@ -20,6 +21,7 @@ class AlarmWidget extends StatelessWidget {
     required this.modes,
     required this.isDelayed,
     required this.enabled,
+    required this.isLive, // <--- NEW
     required this.repeatDays,
     required this.onToggle,
     required this.setTime,
@@ -46,17 +48,16 @@ class AlarmWidget extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  LiveGraphic(isLive: enabled),
-                  Text(
-                    "  ",
-                  ), // Couldn't be faffed with adding a spacer or expanding so this will do.
+                  // Uses delayed live state now
+                  LiveGraphic(isLive: isLive),
+
+                  const Text("  "),
 
                   GestureDetector(
                     onTap: setName,
                     child: Text(
-                      // AlarmName
                       alarmName,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                         color: Colors.white,
@@ -65,17 +66,19 @@ class AlarmWidget extends StatelessWidget {
                   ),
                 ],
               ),
+
               GestureDetector(
                 onTap: setTime,
                 child: Text(
                   alarmTime,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 45,
                     color: Colors.white,
                   ),
                 ),
               ),
+
               Row(
                 children: [
                   Switch(
@@ -85,13 +88,12 @@ class AlarmWidget extends StatelessWidget {
                   ),
 
                   ElevatedButton(
-                    // Edit
                     onPressed: editAlarm,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey[700],
                       foregroundColor: Colors.white,
                     ),
-                    child: Icon(Icons.edit),
+                    child: const Icon(Icons.edit),
                   ),
                 ],
               ),

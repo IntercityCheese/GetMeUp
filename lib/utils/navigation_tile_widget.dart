@@ -4,93 +4,91 @@ class NavigationTileWidget extends StatelessWidget {
   final String startLocation;
   final String endLocation;
   final String mode;
-  final VoidCallback clickStart;
-  final VoidCallback clickEnd;
+  final VoidCallback onTap;
+
   const NavigationTileWidget({
     super.key,
     required this.startLocation,
     required this.endLocation,
     required this.mode,
-    required this.clickStart,
-    required this.clickEnd,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(3.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[800],
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    mode == "Car"
-                        ? Icons.drive_eta
-                        : mode == "Tube"
-                        ? Icons.subway_rounded
-                        : mode == "Train"
-                        ? Icons.train
-                        : Icons.directions_walk_outlined,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: clickStart,
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(3.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[800],
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      mode == "Car"
+                          ? Icons.drive_eta
+                          : mode == "Tube"
+                          ? Icons.subway_rounded
+                          : mode == "Train"
+                          ? Icons.train
+                          : Icons.directions_walk_outlined,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
                       child: Text(
                         startLocation,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
-                        //softWrap: true,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              Icon(Icons.arrow_downward, color: Colors.white, size: 30),
-              Row(
-                children: [
-                  Icon(
-                    mode == "Car"
-                        ? Icons.drive_eta
-                        : mode == "Tube"
-                        ? Icons.subway_rounded
-                        : mode == "Train"
-                        ? Icons.train
-                        : Icons.directions_walk_outlined,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: clickEnd,
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const Icon(Icons.arrow_downward, color: Colors.white, size: 30),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      mode == "Car"
+                          ? Icons.drive_eta
+                          : mode == "Tube"
+                          ? Icons.subway_rounded
+                          : mode == "Train"
+                          ? Icons.train
+                          : Icons.directions_walk_outlined,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
                       child: Text(
                         endLocation,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
-                        //softWrap: true,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

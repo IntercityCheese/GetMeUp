@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:getmeup/utils/alarmwidget.dart';
 import 'package:getmeup/utils/editalarmpoput.dart';
@@ -17,11 +18,36 @@ class _HomePageState extends State<HomePage> {
   final alarmService = AlarmService();
   late TextEditingController controller;
 
+  // Tracks delayed live state for each alarm
+  Map<int, bool> liveState = {};
+  Map<int, Timer?> liveTimers = {};
+
   @override
   void initState() {
     super.initState();
-
     controller = TextEditingController();
+  }
+
+  void updateLiveState(int index, bool enabled) {
+    // Cancel old timer
+    liveTimers[index]?.cancel();
+
+    if (enabled) {
+      // Schedule delayed live = true
+      liveTimers[index] = Timer(const Duration(seconds: 3), () {
+        final alarm = Hive.box<Alarm>('alarms').getAt(index);
+        if (alarm?.isEnabled == true) {
+          setState(() {
+            liveState[index] = true;
+          });
+        }
+      });
+    } else {
+      // Turn off immediately
+      setState(() {
+        liveState[index] = false;
+      });
+    }
   }
 
   // Create new alarm
@@ -43,6 +69,8 @@ class _HomePageState extends State<HomePage> {
   void _deleteAlarm(int index) {
     final box = Hive.box<Alarm>('alarms');
     box.deleteAt(index);
+    liveTimers[index]?.cancel();
+    liveState.remove(index);
   }
 
   Future<void> _changeAlarmName(int index) async {
@@ -94,15 +122,15 @@ class _HomePageState extends State<HomePage> {
   Future<String?> changeNameDialog() => showDialog<String>(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text("Alarm Name"),
+      title: const Text("Alarm Name"),
       content: TextField(
         autofocus: true,
-        decoration: InputDecoration(hintText: "Enter alarm name"),
+        decoration: const InputDecoration(hintText: "Enter alarm name"),
         controller: controller,
       ),
       actions: [
-        TextButton(onPressed: close, child: Text("Cancel")),
-        TextButton(onPressed: submit, child: Text("OK")),
+        TextButton(onPressed: close, child: const Text("Cancel")),
+        TextButton(onPressed: submit, child: const Text("OK")),
       ],
     ),
   );
@@ -119,7 +147,7 @@ class _HomePageState extends State<HomePage> {
 
   void _editAlarmInfo(int index) async {
     final box = Hive.box<Alarm>('alarms');
-    final alarm = box.getAt(index)!; // ← add !
+    final alarm = box.getAt(index)!;
 
     await showModalBottomSheet(
       context: context,
@@ -135,18 +163,19 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Text("GetMeUp!", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          "GetMeUp!",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.deepOrange,
         foregroundColor: Colors.white,
       ),
       floatingActionButton: FloatingActionButton.extended(
-        label: Text("New Alarm"),
-        icon: Icon(Icons.alarm),
+        label: const Text("New Alarm"),
+        icon: const Icon(Icons.alarm),
         backgroundColor: Colors.deepOrange,
         foregroundColor: Colors.white,
-        onPressed: () {
-          _createNewAlarm();
-        },
+        onPressed: _createNewAlarm,
       ),
 
       body: Padding(
@@ -170,21 +199,24 @@ class _HomePageState extends State<HomePage> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                       alignment: Alignment.centerRight,
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: Icon(Icons.delete, color: Colors.white),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: const Icon(Icons.delete, color: Colors.white),
                     ),
                   ),
-                  onDismissed: (direction) {
-                    _deleteAlarm(index);
-                  },
+                  onDismissed: (direction) => _deleteAlarm(index),
 
                   child: AlarmWidget(
                     alarmName: alarm.alarmName,
                     alarmTime: alarm.time,
-                    modes: [],
+                    modes: const [],
                     isDelayed: false,
                     enabled: alarm.isEnabled,
+
+                    // <-- delayed live state here
+                    isLive: liveState[index] ?? false,
+
                     repeatDays: alarm.repeatDays,
+
                     onToggle: (value) {
                       final updated = Alarm(
                         alarmName: alarm.alarmName,
@@ -196,7 +228,10 @@ class _HomePageState extends State<HomePage> {
                       );
 
                       box.putAt(index, updated);
+
+                      updateLiveState(index, value); // <-- IMPORTANT
                     },
+
                     setTime: () => _changeAlarmTime(index),
                     setName: () => _changeAlarmName(index),
                     editAlarm: () => _editAlarmInfo(index),

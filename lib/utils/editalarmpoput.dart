@@ -16,7 +16,6 @@ class EditAlarmPopout extends StatefulWidget {
 
 class _EditAlarmPopoutState extends State<EditAlarmPopout> {
   final TextEditingController _timeController = TextEditingController();
-  final TextEditingController controller = TextEditingController();
 
   Box<Alarm> get alarmBox => Hive.box<Alarm>("alarms");
 
@@ -24,6 +23,12 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
   void initState() {
     super.initState();
     _timeController.text = widget.alarm.arrivalTime;
+  }
+
+  @override
+  void dispose() {
+    _timeController.dispose();
+    super.dispose();
   }
 
   Future<void> _createNewJourney() async {
@@ -112,24 +117,103 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
     }
   }
 
-  Future<void> _changeDestinationMode(
-    int journeyIndex,
-    int location,
+  /// Opens the full-edit dialog for a journey and returns a List<String>
+  /// [start, end, mode] or null if cancelled.
+  Future<List<String>?> changeLocationDialog(
     String title,
-  ) async {
+    List<String> existing,
+  ) {
+    final startController = TextEditingController(text: existing[0]);
+    final endController = TextEditingController(text: existing[1]);
+    String selectedMode = existing[2];
+
+    const modes = [
+      "Car",
+      "Train",
+      "Tube",
+      "Walking",
+      "Cycling",
+      "Get Ready Period",
+    ];
+
+    return showDialog<List<String>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: const InputDecoration(labelText: "Start Location"),
+              controller: startController,
+              autofocus: true,
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              decoration: const InputDecoration(labelText: "End Location"),
+              controller: endController,
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: selectedMode,
+              items: modes
+                  .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+                  .toList(),
+              onChanged: (val) {
+                if (val != null) selectedMode = val;
+              },
+              decoration: const InputDecoration(labelText: "Mode"),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Dispose controllers before popping
+              startController.dispose();
+              endController.dispose();
+              Navigator.of(context).pop();
+            },
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              final result = [
+                startController.text,
+                endController.text,
+                selectedMode,
+              ];
+              startController.dispose();
+              endController.dispose();
+              Navigator.of(context).pop(result);
+            },
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _changeDestinationMode(int journeyIndex) async {
     final alarm = alarmBox.getAt(widget.index);
     if (alarm == null) return;
 
-    final newName = await changeLocationDialog(title);
-    if (newName == null) return;
-
     final updatedMap = Map<String, dynamic>.from(alarm.modeMap);
-
     final key = journeyIndex.toString();
-    final journey = List.from(updatedMap[key]);
-    journey[location] = newName;
 
-    updatedMap[key] = journey;
+    // Ensure we have a journey to edit; if not, return.
+    if (!updatedMap.containsKey(key)) return;
+
+    final currentJourney = List<String>.from(updatedMap[key] as List);
+
+    final newJourney = await changeLocationDialog(
+      "Edit Journey",
+      currentJourney,
+    );
+
+    if (newJourney == null) return;
+
+    updatedMap[key] = newJourney;
 
     alarmBox.putAt(
       widget.index,
@@ -144,34 +228,6 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
     );
 
     await _selectTime();
-  }
-
-  Future<String?> changeLocationDialog(String title) {
-    return showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          autofocus: true,
-          decoration: InputDecoration(hintText: "Enter $title"),
-          controller: controller,
-        ),
-        actions: [
-          TextButton(onPressed: close, child: const Text("Cancel")),
-          TextButton(onPressed: submit, child: const Text("OK")),
-        ],
-      ),
-    );
-  }
-
-  void submit() {
-    Navigator.of(context).pop(controller.text);
-    controller.clear();
-  }
-
-  void close() {
-    Navigator.of(context).pop();
-    controller.clear();
   }
 
   @override
@@ -194,7 +250,7 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
             final alarm = alarmBox.getAt(widget.index);
             if (alarm == null) return const SizedBox();
 
-            final journeys = alarm.modeMap;
+            final journeys = alarm.modeMap as Map<String, dynamic>;
             final keys = journeys.keys.toList();
 
             return Column(
@@ -262,7 +318,9 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
                           itemCount: journeys.length,
                           itemBuilder: (context, index) {
                             final key = keys[index];
-                            final journey = journeys[key] as List;
+                            final journey = List<String>.from(
+                              journeys[key] as List,
+                            );
 
                             return Dismissible(
                               key: ValueKey(
@@ -288,16 +346,7 @@ class _EditAlarmPopoutState extends State<EditAlarmPopout> {
                                 startLocation: journey[0],
                                 endLocation: journey[1],
                                 mode: journey[2],
-                                clickStart: () => _changeDestinationMode(
-                                  index,
-                                  0,
-                                  "Start Location",
-                                ),
-                                clickEnd: () => _changeDestinationMode(
-                                  index,
-                                  1,
-                                  "End Location",
-                                ),
+                                onTap: () => _changeDestinationMode(index),
                               ),
                             );
                           },
