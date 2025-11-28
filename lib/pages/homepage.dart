@@ -119,7 +119,8 @@ class _HomePageState extends State<HomePage> {
 
   void _editAlarmInfo(int index) async {
     final box = Hive.box<Alarm>('alarms');
-    final alarm = box.getAt(index);
+    final alarm = box.getAt(index)!; // ← add !
+
     await showModalBottomSheet(
       context: context,
       builder: (context) {

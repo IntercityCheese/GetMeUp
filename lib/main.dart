@@ -10,8 +10,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   Hive.registerAdapter(AlarmAdapter());
-  await Hive.openBox<Alarm>('alarms');
 
+  // DEV: wipe only the alarms box on startup so old incompatible data is removed
+  // Use this only for development/migration, remove afterwards.
+  await Hive.deleteBoxFromDisk('alarms');
+
+  await Hive.openBox<Alarm>('alarms');
   runApp(const MyApp());
 }
 

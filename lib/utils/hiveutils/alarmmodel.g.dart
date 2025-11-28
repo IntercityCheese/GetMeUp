@@ -21,7 +21,8 @@ class AlarmAdapter extends TypeAdapter<Alarm> {
       isEnabled: fields[2] as bool,
       repeatDays: (fields[3] as List).cast<int>(),
       alarmName: fields[0] as String,
-      modeMap: (fields[5] as Map).cast<dynamic, dynamic>(),
+      modeMap:
+          (fields[5] as Map?)?.cast<dynamic, dynamic>() ?? <dynamic, dynamic>{},
       arrivalTime: fields[4] as String,
     );
   }

@@ -31,61 +31,66 @@ class AlarmService {
     return hours * 60 + minutes;
   }
 
-  void calculateNewTime(int index) async {
+  /// Calculates the new wake-up time based on journey times
+  Future<void> calculateNewTime(int index) async {
     final alarm = box.getAt(index);
+    if (alarm == null) return;
 
-    double journeyTime = 0;
+    double journeyTime = 0.0; // in minutes
 
-    final geocoder = GeocodingService(
-      "pk.eyJ1IjoiYmlnYWxmMTIzNCIsImEiOiJjbWlldGtieXAwNmRnM2RyMTM2MTYxY3kyIn0.WXE5ObH-g8765iNvqpFL9g",
-    );
+    final geocoder = GeocodingService(DriveAPIService().accessToken);
+    final routing = DriveAPIService();
 
-    final routing = driveAPIService();
+    for (int journey = 0; journey < alarm.modeMap.length; journey++) {
+      final item = alarm.modeMap[journey.toString()];
+      if (item == null) continue;
 
-    for (int journey = 0; journey < alarm!.modeMap.length; journey++) {
-      if (alarm.modeMap[journey.toString()][2] == "PreTime") {
-        journeyTime += alarm.modeMap[journey.toString()][0];
-      }
-      if (alarm.modeMap[journey.toString()][2] == "Car") {
-        // Geocode start location
-        List<double>? startCoords = await geocoder.forwardGeocode(
-          alarm.modeMap[journey.toString()][0],
-        );
-
-        // Geocode end location
-        List<double>? endCoords = await geocoder.forwardGeocode(
-          alarm.modeMap[journey.toString()][1],
-        );
+      final type = item[2];
+      if (type == "PreTime") {
+        // ensure numeric
+        journeyTime += (item[0] is num)
+            ? item[0].toDouble()
+            : double.tryParse(item[0].toString()) ?? 0;
+      } else if (type == "Car") {
+        final startCoords = await geocoder.forwardGeocode(item[0]);
+        final endCoords = await geocoder.forwardGeocode(item[1]);
 
         if (startCoords == null || endCoords == null) {
           Fluttertoast.showToast(msg: "Could not find one of the addresses");
           return;
         }
 
-        // Convert lists to "lon,lat" strings for Mapbox
-        final startConverted = "${startCoords[0]},${startCoords[1]}";
-        final endConverted = "${endCoords[0]},${endCoords[1]}";
+        final startStr = "${startCoords[0]},${startCoords[1]}";
+        final endStr = "${endCoords[0]},${endCoords[1]}";
 
-        // Call your existing routing API
-        double? subJourneyTime = await routing.getTravelTime(
-          startConverted,
-          endConverted,
+        final subJourneyTime = await routing.getTravelTime(startStr, endStr);
+        if (subJourneyTime == null) {
+          Fluttertoast.showToast(
+            msg: "Could not calculate travel time for journey",
+          );
+          return;
+        }
+
+        journeyTime += subJourneyTime;
+        print(
+          "Journey $journey: $startStr -> $endStr = $subJourneyTime minutes",
         );
-
-        journeyTime += subJourneyTime!;
       }
     }
-    // now perform subtraction on arrival time
-    // make sure to add precommute time period to alarmmodel
-    int minutes = timeToMinutes(alarm.arrivalTime);
-    minutes -= journeyTime as int;
-    minutes = minutes % (24 * 60); // wrap around 24h if needed
-    int h = minutes ~/ 60;
-    int m = minutes % 60;
+
+    // Convert arrivalTime → minutes
+    final arrivalMinutes = timeToMinutes(alarm.arrivalTime);
+
+    // Subtract journey time
+    int wakeUpMinutes = arrivalMinutes - journeyTime.round();
+    wakeUpMinutes = wakeUpMinutes % (24 * 60); // wrap around 24h
+
+    final h = wakeUpMinutes ~/ 60;
+    final m = wakeUpMinutes % 60;
     final wakeUpTime =
         "${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}";
 
-    // then
+    // Save new alarm
     final newAlarm = Alarm(
       time: wakeUpTime,
       isEnabled: alarm.isEnabled,
@@ -95,6 +100,6 @@ class AlarmService {
       arrivalTime: alarm.arrivalTime,
     );
 
-    box.putAt(index, newAlarm);
+    await box.putAt(index, newAlarm);
   }
 }
