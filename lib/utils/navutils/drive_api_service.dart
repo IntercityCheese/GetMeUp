@@ -4,7 +4,7 @@ import 'dart:convert';
 
 class DriveAPIService {
   final String accessToken =
-      "pk.eyJ1IjoiYmlnYWxmMTIzNCIsImEiOiJjbWlldGtieXAwNmRnM2RyMTM2MTYxY3kyIn0.WXE5ObH-g8765iNvqpFL9g";
+      "YOURAPIKEY";
 
   /// Returns travel time in minutes between two points (lng,lat)
   Future<double?> getTravelTime(String start, String end) async {
